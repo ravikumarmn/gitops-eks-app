@@ -1,0 +1,59 @@
+services:
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - PRODUCT_SERVICE_URL=http://product-catalog:3002
+      - ORDER_SERVICE_URL=http://order-service:3003
+    depends_on:
+      - auth-service
+      - product-catalog
+      - order-service
+    networks:
+      - app-network
+
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-prod}
+    networks:
+      - app-network
+
+  product-catalog:
+    build: ./product-catalog
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+    networks:
+      - app-network
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - PRODUCT_SERVICE_URL=http://product-catalog:3002
+    depends_on:
+      - product-catalog
+    networks:
+      - app-network
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "3004:3004"
+    environment:
+      - PORT=3004
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
